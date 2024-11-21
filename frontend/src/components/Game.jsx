@@ -1,6 +1,7 @@
 import  { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import io from 'socket.io-client';
+const backendUrl = import.meta.env.VITE_BACKENDURL;
 
 const CanvasGame = (props) => {
   const canvasRef = useRef(null);
@@ -52,7 +53,7 @@ const CanvasGame = (props) => {
     canvas.height = canvas.clientHeight;
 
     // Initialize socket connection
-    socketRef.current = io('http://localhost:3001');
+    socketRef.current = io(`${backendUrl}`);
     
     // Socket event handlers
     socketRef.current.on('connect', () => {

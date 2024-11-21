@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+const backendUrl = import.meta.env.VITE_BACKENDURL;
+
 // NavigationButton component
 const NavigationButton = ({ children, isActive = false }) => (
   <button
@@ -166,7 +168,7 @@ const MySpace = () => {
     } else {
       async function getSpaces() {
         if (user) {
-          const spaces = await axios.post("http://localhost:3001/getspace", { email: user.email });
+          const spaces = await axios.post(`${backendUrl}/getspace`, { email: user.email });
           console.log(spaces.data);
           spaces.data.forEach((space) => {
             const istdate = convertToIST(space.lastModified);
@@ -182,7 +184,7 @@ const MySpace = () => {
   }, [isAuthenticated, isLoading, navigate, user]);
 
   const handleCreateSpace = async(newSpace) => {
-    const result= await axios.post("http://localhost:3001/newspace", {email: user.email,roomId:Math.floor(100000 + Math.random() * 900000), title: newSpace.title});
+    const result= await axios.post(`${backendUrl}/newspace`, {email: user.email,roomId:Math.floor(100000 + Math.random() * 900000), title: newSpace.title});
     const istdate=convertToIST(result.data.lastModified);
     result.data.lastModified=istdate;
     setSpaces([...spaces, result.data]);
@@ -190,7 +192,7 @@ const MySpace = () => {
   const handleDeleteSpace = (index,space) => {
     const updatedSpaces = spaces.filter((_, i) => i !== index);
     setSpaces(updatedSpaces);
-    axios.post("http://localhost:3001/deletespace", {email: user.email,roomId:space.roomId});
+    axios.post(`${backendUrl}/deletespace`, {email: user.email,roomId:space.roomId});
   };
   if (isLoading) {
     return <div>Loading...</div>;

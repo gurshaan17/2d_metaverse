@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
+const backendUrl = import.meta.env.VITE_BACKENDURL;
 
 const VideoCall = ({ roomId, onClose }) => {
   const localVideoRef = useRef(null);
@@ -9,7 +10,7 @@ const VideoCall = ({ roomId, onClose }) => {
   const [userNames, setUserNames] = useState({});
 
   useEffect(() => {
-    socketRef.current = io('http://localhost:3001');
+    socketRef.current = io(`${backendUrl}`);
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(stream => {

@@ -6,6 +6,7 @@ import { useEffect,useState } from "react";
 import {DoorOpen, MessageCircle, Share2, UsersRound} from "lucide-react"
 import { io } from "socket.io-client";
 import VideoCall from './VideoCall';
+const backendUrl = import.meta.env.VITE_BACKENDURL;
 
 function Space() {
   const location = useLocation();
@@ -25,7 +26,7 @@ function Space() {
       navigate('/');
     }
     if(isAuthenticated && user){
-      const Socket = io('http://localhost:3001');
+      const Socket = io(`${backendUrl}`);
       setSocket(Socket);
       Socket.on('connect', () => {
         console.log("Chat connected")
