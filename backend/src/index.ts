@@ -7,7 +7,7 @@ import cors from "cors";
 import { initWs } from "./ws";
 import mongoose from "mongoose";
 
-const app = express();
+const app = express(); 
 app.use(cors());
 const mongoUrl: string = process.env.mongo_url || "mongo_url";
 const connect = async () => {
