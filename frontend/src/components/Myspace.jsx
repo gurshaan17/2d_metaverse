@@ -156,7 +156,7 @@ function convertToIST(isoString) {
 
 // MySpace component
 const MySpace = () => {
-  const [activeTab, setActiveTab] = useState('Last Visited');
+  const [activeTab, setActiveTab] = useState('Created Spaces');
   const { user, isAuthenticated, isLoading, logout } = useKindeAuth();
   const [spaces, setSpaces] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -223,10 +223,6 @@ const MySpace = () => {
             className="w-8 h-8"
           />
           <div className="flex items-center gap-2">
-            <NavigationButton>
-              <Calendar size={20} />
-              Events
-            </NavigationButton>
             <NavigationButton isActive>
               <Users size={20} />
               My Spaces
@@ -264,19 +260,16 @@ const MySpace = () => {
         {/* Tabs and Join Space */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex gap-4">
-            {['Last Visited', 'Created Spaces'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === tab 
-                    ? 'bg-[#464B6B] text-white' 
-                    : 'text-gray-300 hover:bg-[#464B6B]'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+            <button
+              onClick={() => setActiveTab('Created Spaces')}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'Created Spaces' 
+                  ? 'bg-[#464B6B] text-white' 
+                  : 'text-gray-300 hover:bg-[#464B6B]'
+              }`}
+            >
+              Created Spaces
+            </button>
           </div>
           <form onSubmit={handleJoinSpace} className="relative flex items-center">
             <input
