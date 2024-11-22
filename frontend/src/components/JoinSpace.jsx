@@ -18,6 +18,7 @@ function JoinSpace() {
   const [chatMessages, setChatMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
+  const [gameLoaded, setGameLoaded] = useState(false);
 
   useEffect(() => {
     // if (!isLoading && !isAuthenticated) {
@@ -28,7 +29,7 @@ function JoinSpace() {
       const Socket = io(`${backendUrl}`);
       setSocket(Socket);
       Socket.on('connect', () => {
-        console.log("Chat connected");
+        console.log("Socket connected successfully");
         Socket.emit("chatConnect", {
           name: user.given_name + " " + user.family_name,
           profile: user?.picture || "/default-avatar.png",
@@ -36,17 +37,8 @@ function JoinSpace() {
         });
       });
 
-      Socket.on("chatMembers", (data) => {
-        console.log(data);
-        setChatMembers(data);
-      });
-
-      Socket.on("userJoined", (newMember) => {
-        setChatMembers(prevMembers => [...prevMembers, newMember]);
-      });
-
-      Socket.on("userDisconnected", (userId) => {
-        setChatMembers(prevMembers => prevMembers.filter(member => member.id !== userId));
+      Socket.on('connect_error', (error) => {
+        console.error("Socket connection error:", error);
       });
 
       return () => {
@@ -116,12 +108,21 @@ function JoinSpace() {
         <span className="text-sm text-gray-300">{`Space ID ${spaceId}`}</span>
       </div>
       <div className="h-[92%] w-screen flex">
-        <div className="w-[75%] bg-yellow-300">
-          {user && spaceId && (
+        <div className="w-[75%] h-full bg-[#242846]">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-gray-400">Loading...</span>
+            </div>
+          ) : user && spaceId ? (
             <CanvasGame
               name={user.given_name + " " + user.family_name}
               gameId={spaceId}
+              onLoad={() => setGameLoaded(true)}
             />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-gray-400">Authentication required</span>
+            </div>
           )}
         </div>
         <div className="w-[25%] bg-[#202540]">
