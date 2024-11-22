@@ -76,6 +76,10 @@ function JoinSpace() {
     return <div>Loading...</div>;
   }
 
+  if (!isAuthenticated) {
+    return null;
+  }
+
   function switchChat(value) {
     if (value) {
       setChat(true);
