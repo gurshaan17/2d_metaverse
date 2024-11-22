@@ -20,10 +20,10 @@ function JoinSpace() {
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
 
   useEffect(() => {
-    // if (!isLoading && !isAuthenticated) {
-    //   navigate('/');
-    // }
-    if (user && spaceId) {
+    if (!isLoading && !isAuthenticated) {
+      navigate('/');
+    }
+    if (isAuthenticated && user) {
       const Socket = io(`${backendUrl}`);
       setSocket(Socket);
       Socket.on('connect', () => {
@@ -54,7 +54,7 @@ function JoinSpace() {
         }
       };
     }
-  }, [isLoading, navigate, user, spaceId]);
+  }, [isAuthenticated, isLoading, navigate, user, spaceId]);
 
   useEffect(() => {
     if (socket) {
@@ -158,20 +158,58 @@ function JoinSpace() {
                 />
                 <button
                   onClick={handleSendMessage}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white"
                 >
                   Send
                 </button>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col h-full items-center justify-center">
-              <DoorOpen size={48} className="text-gray-400 mb-4" />
-              <span className="text-lg text-gray-400">No chat available</span>
+            <div>
+              <div className="w-[95%] justify-start items-center flex">
+                <span className="p-3 text-xl text-gray-400 font-bold">Members</span>
+                <div className="bg-[#2D335A] rounded-lg p-1 text-gray-500 text-sm">
+                  {chatMembers.length}
+                </div>
+                <span onClick={() => { switchChat(); }} className="text-lg text-gray-300 cursor-pointer ml-[57%]">X</span>
+              </div>
+              <div className="flex flex-col overflow-y-auto">
+                {chatMembers.map((member, index) => (
+                  <div key={index} className="flex items-center p-2">
+                    <img src="/front (2).png" className="w-11 h-11 rounded-full" />
+                    <div className="rounded-full bg-green-500 w-2 h-2"></div>
+                    <span className="text-gray-400 text-sm ml-4 font-semibold">{member.name}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
       </div>
+      <div className="w-screen h-[6%] bg-[#202540] flex items-center">
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/3054/3054881.png"
+          alt="Logo"
+          className="w-8 h-8"
+        />
+        <div className="ml-[3%] h-[80%] flex bg-[#2D335A] space-x-2 rounded-lg p-2">
+          <img src={user.picture} className="w-6 h-6 rounded-full" alt="User" />
+          <span className="text-sm text-gray-600">|</span>
+          <span className="text-gray-400 text-sm">{user.given_name + " " + user.family_name}</span>
+          <div className="rounded-full bg-green-500 w-2 h-2"></div>
+        </div>
+        <MessageCircle onClick={() => { switchChat(true); }} size={20} className="text-gray-300 m-2 cursor-pointer ml-[65%]" />
+        <div className="flex justify-center items-center ml-4">
+          <UsersRound onClick={() => { switchChat(false); }} size={20} className="text-gray-300 m-2 cursor-pointer" />
+          <div className="rounded-full bg-green-500 w-2 h-2"></div>
+          <span className="text-gray-400 text-sm ml-1">{chatMembers.length}</span>
+        </div>
+        <DoorOpen onClick={handleVideoCall} size={23} className="text-gray-300 m-2 cursor-pointer ml-9" />
+      </div>
+
+      {isVideoCallOpen && (
+        <VideoCall roomId={spaceId} onClose={() => setIsVideoCallOpen(false)} />
+      )}
     </div>
   );
 }
