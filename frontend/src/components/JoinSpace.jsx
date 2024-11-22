@@ -23,7 +23,7 @@ function JoinSpace() {
     if (!isLoading && !isAuthenticated) {
       navigate('/');
     }
-    if (isAuthenticated && user && spaceId) {
+    if (user && spaceId) {
       const Socket = io(`${backendUrl}`);
       setSocket(Socket);
       Socket.on('connect', () => {
@@ -52,7 +52,7 @@ function JoinSpace() {
         Socket.disconnect();
       };
     }
-  }, [isAuthenticated, isLoading, navigate, user, spaceId]);
+  }, [isLoading, navigate, user, spaceId]);
 
   useEffect(() => {
     if (socket) {
