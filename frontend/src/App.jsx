@@ -21,13 +21,14 @@ const router = createBrowserRouter([
 ]);
 
 const App = () => {
+  const frontendUrl = import.meta.env.VITE_FRONTENDURL;
   console.log(import.meta.env.VITE_CLIENT_ID);
   return (
     <KindeProvider
 		clientId={import.meta.env.VITE_CLIENT_ID}
 		domain={import.meta.env.VITE_DOMAIN}
-		redirectUri="http://localhost:5173/space"
-		logoutUri="http://localhost:5173"
+		redirectUri={new URL('/space', frontendUrl).href}
+		logoutUri={new URL('/', frontendUrl).href}
 	>
     <Router router={router}>
       <Routes>
