@@ -18,6 +18,10 @@ const router = createBrowserRouter([
     path: '/myspace',
     element: <Space />,
   },
+  {
+    path: '/space/:spaceId',
+    element: <Space />,
+  }
 ]);
 
 const App = () => {
@@ -35,6 +39,7 @@ const App = () => {
         <Route path="/" element={<Homepage />} />
         <Route path='/space' element={<MySpace />} />
         <Route path="/myspace" element={<Space />} />
+        <Route path="/space/:spaceId" element={<Space />} />
        </Routes>
     </Router>
     </KindeProvider>
