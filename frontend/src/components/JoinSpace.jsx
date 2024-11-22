@@ -20,9 +20,9 @@ function JoinSpace() {
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      navigate('/');
-    }
+    // if (!isLoading && !isAuthenticated) {
+    //   navigate('/');
+    // }
     if (user && spaceId) {
       const Socket = io(`${backendUrl}`);
       setSocket(Socket);
