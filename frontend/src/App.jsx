@@ -21,7 +21,7 @@ const router = createBrowserRouter([
 ]);
 
 const App = () => {
-  const frontendUrl = import.meta.env.VITE_FRONTENDURL;
+  const frontendUrl = import.meta.env.VITE_FRONTENDURL || "https://metaverse.gurshaan.xyz/";
   console.log(import.meta.env.VITE_CLIENT_ID);
   return (
     <KindeProvider
