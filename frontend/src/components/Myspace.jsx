@@ -242,10 +242,6 @@ const MySpace = () => {
             className="w-8 h-8 rounded-full"
           />
           <span className="text-white font-medium">{user.given_name}</span>
-          <NavigationButton>
-            <Globe size={20} />
-            English
-          </NavigationButton>
           <button
             onClick={logout}
             className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors hover:text-white text-gray-300 hover:bg-red-400"
