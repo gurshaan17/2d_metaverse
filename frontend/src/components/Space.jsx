@@ -65,9 +65,9 @@ function Space() {
     return <div>Loading...</div>;
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  // if (!isAuthenticated) {
+  //   return null;
+  // }
 
   
   // Retrieve query parameters from the URL

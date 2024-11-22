@@ -4,6 +4,7 @@ import Space from './components/Space';
 import {KindeProvider} from "@kinde-oss/kinde-auth-react";
 import MySpace from './components/Myspace';
 import { createBrowserRouter } from 'react-router-dom';
+import JoinSpace from './components/JoinSpace';
 
 const router = createBrowserRouter([
   {
@@ -20,7 +21,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/space/:spaceId',
-    element: <Space />,
+    element: <JoinSpace />,
   }
 ]);
 
@@ -39,7 +40,7 @@ const App = () => {
         <Route path="/" element={<Homepage />} />
         <Route path='/space' element={<MySpace />} />
         <Route path="/myspace" element={<Space />} />
-        <Route path="/space/:spaceId" element={<Space />} />
+        <Route path="/space/:spaceId" element={<JoinSpace />} />
        </Routes>
     </Router>
     </KindeProvider>
