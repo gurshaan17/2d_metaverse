@@ -26,7 +26,7 @@ function Space() {
       navigate('/');
     }
     if(isAuthenticated && user){
-      const Socket = io(`${backendUrl}`);
+      const Socket = io(backendUrl);
       setSocket(Socket);
       Socket.on('connect', () => {
         console.log("Chat connected")

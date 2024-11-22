@@ -26,8 +26,16 @@ function JoinSpace() {
     //   return;
     // }
     if (isAuthenticated && user) {
-      const Socket = io(`${backendUrl}`);
+      const Socket = io(backendUrl, {
+        transports: ['websocket', 'polling'],
+        withCredentials: true,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000
+      });
+      
       setSocket(Socket);
+      
       Socket.on('connect', () => {
         console.log("Chat connected");
         const userName = user?.given_name && user?.family_name 
@@ -39,6 +47,19 @@ function JoinSpace() {
           profile: user?.picture || "/default-avatar.png",
           spaceId: spaceId
         });
+      });
+
+      Socket.on('chatMembers', (data) => {
+        console.log(data);
+        setChatMembers(data);
+      });
+
+      Socket.on('userJoined', (newMember) => {
+        setChatMembers(prevMembers => [...prevMembers, newMember]);
+      });
+
+      Socket.on('userDisconnected', (userId) => {
+        setChatMembers(prevMembers => prevMembers.filter(member => member.id !== userId));
       });
 
       Socket.on('connect_error', (error) => {

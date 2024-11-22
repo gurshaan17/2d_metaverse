@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
-import { get, Server as HttpServer } from "http";
+import { Server as HttpServer } from "http";
 
+// Interfaces
 interface Player {
   id: string;
   x: number;
@@ -14,93 +15,117 @@ interface RoomState {
   players: Map<string, Player>;
 }
 
+interface VideoRoom {
+  users: Map<string, string>; // userId -> userName
+}
+
 export const initWs = (httpServer: HttpServer) => {
   const io = new Server(httpServer, {
     cors: {
       origin: "*",
       methods: ["GET", "POST"],
     },
+    pingTimeout: 60000,
+    pingInterval: 25000,
+    transports: ['websocket', 'polling']
   });
 
-  // Track rooms and their players
-  const rooms = new Map<string, RoomState>();
+  // Track game rooms and video rooms separately
+  const gameRooms = new Map<string, RoomState>();
+  const videoRooms = new Map<string, VideoRoom>();
 
+  // Helper functions for game rooms
   const getPlayersInRoom = (roomId: string): Player[] => {
-    const roomState = rooms.get(roomId);
+    const roomState = gameRooms.get(roomId);
     return roomState ? Array.from(roomState.players.values()) : [];
   };
 
   const addPlayerToRoom = (roomId: string, player: Player) => {
-    if (!rooms.has(roomId)) {
-      rooms.set(roomId, { players: new Map() });
+    if (!gameRooms.has(roomId)) {
+      gameRooms.set(roomId, { players: new Map() });
     }
-    const roomState = rooms.get(roomId)!;
+    const roomState = gameRooms.get(roomId)!;
     roomState.players.set(player.id, player);
   };
 
   const removePlayerFromRoom = (roomId: string, playerId: string) => {
-    const roomState = rooms.get(roomId);
+    const roomState = gameRooms.get(roomId);
     if (roomState) {
       roomState.players.delete(playerId);
-      // Clean up empty rooms
       if (roomState.players.size === 0) {
-        rooms.delete(roomId);
+        gameRooms.delete(roomId);
+      }
+    }
+  };
+
+  // Helper functions for video rooms
+  const addUserToVideoRoom = (roomId: string, userId: string, userName: string) => {
+    if (!videoRooms.has(roomId)) {
+      videoRooms.set(roomId, { users: new Map() });
+    }
+    const room = videoRooms.get(roomId)!;
+    room.users.set(userId, userName);
+  };
+
+  const removeUserFromVideoRoom = (roomId: string, userId: string) => {
+    const room = videoRooms.get(roomId);
+    if (room) {
+      room.users.delete(userId);
+      if (room.users.size === 0) {
+        videoRooms.delete(roomId);
       }
     }
   };
 
   io.on("connection", (socket: Socket) => {
-    console.log("Player connected:", socket.id);
-   //Chat Logic 
-      socket.on("chatConnect", (data: { name: string; profile: string;spaceId:string }) => {
+    console.log("Client connected:", socket.id);
+    let currentGameRoom: string | null = null;
+    let currentVideoRoom: string | null = null;
+
+    // Chat Logic
+    socket.on("chatConnect", (data: { name: string; profile: string; spaceId: string }) => {
       socket.join(data.spaceId);
       socket.to(data.spaceId).emit("chatMembers", getPlayersInRoom(data.spaceId));
-      });
-      socket.on('sendMessage', (data: { sender:string;message:string;timestamp:string;roomId:string,profile:string}) => {
-        console.log("Broadcasting message:", data);
-        socket.to(data.roomId).emit('receiveMessage', data);
-      });
-    // Game logic
-    let currentRoom: string | null = null;
+    });
 
+    socket.on('sendMessage', (data: { 
+      sender: string;
+      message: string;
+      timestamp: string;
+      roomId: string;
+      profile: string;
+    }) => {
+      console.log("Broadcasting message:", data);
+      socket.to(data.roomId).emit('receiveMessage', data);
+    });
+
+    // Game Logic
     socket.on("player-join", (data: { 
       name?: string;
       x?: number;
       y?: number;
       room: string;
     }) => {
-      // Leave previous room if exists
-      if (currentRoom) {
-        removePlayerFromRoom(currentRoom, socket.id);
-        socket.leave(currentRoom);
+      if (currentGameRoom) {
+        removePlayerFromRoom(currentGameRoom, socket.id);
+        socket.leave(currentGameRoom);
       }
 
-      const roomId = data.room;
-      currentRoom = roomId;
-
-      // Create player object
+      currentGameRoom = data.room;
       const player: Player = {
         id: socket.id,
         x: data.x || Math.random() * 1000,
         y: data.y || Math.random() * 1000,
         direction: "front",
         name: data.name || `Player ${socket.id.slice(0, 4)}`,
-        room: roomId,
+        room: currentGameRoom,
       };
 
-      // Join socket.io room
-      socket.join(roomId);
-
-      // Add player to room state
-      addPlayerToRoom(roomId, player);
-
-      // Send current players in room to new player
-      socket.emit("players-sync", getPlayersInRoom(roomId));
-
-      // Broadcast new player to others in room
-      socket.to(roomId).emit("player-joined", player);
-
-      console.log(`Player ${player.name} joined room ${roomId}`);
+      socket.join(currentGameRoom);
+      addPlayerToRoom(currentGameRoom, player);
+      socket.emit("players-sync", getPlayersInRoom(currentGameRoom));
+      socket.to(currentGameRoom).emit("player-joined", player);
+      console.log(`Player ${player.name} joined game room ${currentGameRoom}`);
     });
 
     socket.on("player-move", (data: {
@@ -109,50 +134,92 @@ export const initWs = (httpServer: HttpServer) => {
       direction: string;
       room: string;
     }) => {
-      const roomState = rooms.get(data.room);
+      const roomState = gameRooms.get(data.room);
       if (!roomState) return;
 
       const player = roomState.players.get(socket.id);
       if (player) {
-        // Update player position
         player.x = data.x;
         player.y = data.y;
         player.direction = data.direction;
-
-        // Broadcast movement to others in the same room
         socket.to(data.room).emit("player-moved", player);
       }
     });
 
-    socket.on("disconnect", () => {
-      console.log("Player disconnected:", socket.id);
+    // Video Call Logic
+    socket.on("joinRoom", (data: { roomId: string; userName: string }) => {
+      const { roomId, userName } = data;
+      currentVideoRoom = roomId;
       
-      if (currentRoom) {
-        // Notify others in the room
-        socket.to(currentRoom).emit("player-left", socket.id);
-        
-        // Remove player from room state
-        removePlayerFromRoom(currentRoom, socket.id);
-        socket.to(currentRoom).emit("chatMembers", getPlayersInRoom(currentRoom));
-        console.log(`Player ${socket.id} left room ${currentRoom}`);
-      }
-    });
-
-    socket.on("joinRoom", (roomId: string) => {
       socket.join(roomId);
-      socket.to(roomId).emit('newUser', socket.id); // Notify others that a new user has joined
+      addUserToVideoRoom(roomId, socket.id, userName);
+
+      // Notify existing users about the new user
+      socket.to(roomId).emit("newUser", { 
+        userId: socket.id, 
+        userName 
+      });
+
+      console.log(`User ${userName} (${socket.id}) joined video room ${roomId}`);
     });
 
-    socket.on("offer", (data: { sdp: RTCSessionDescriptionInit; roomId: string; userId: string }) => {
-      socket.to(data.roomId).emit("offer", { offer: data.sdp, userId: data.userId });
+    socket.on("offer", (data: { 
+      sdp: RTCSessionDescriptionInit; 
+      roomId: string; 
+      userId: string;
+      userName: string;
+    }) => {
+      socket.to(data.roomId).emit("offer", { 
+        offer: data.sdp, 
+        userId: socket.id,
+        userName: data.userName
+      });
     });
 
-    socket.on("answer", (data: { sdp: RTCSessionDescriptionInit; roomId: string; userId: string }) => {
-      socket.to(data.roomId).emit("answer", { answer: data.sdp, userId: data.userId });
+    socket.on("answer", (data: { 
+      sdp: RTCSessionDescriptionInit; 
+      roomId: string; 
+      userId: string;
+      userName: string;
+    }) => {
+      socket.to(data.roomId).emit("answer", { 
+        answer: data.sdp, 
+        userId: socket.id,
+        userName: data.userName
+      });
     });
 
-    socket.on("candidate", (data: { candidate: RTCIceCandidateInit; roomId: string; userId: string }) => {
-      socket.to(data.roomId).emit("candidate", { candidate: data.candidate, userId: data.userId });
+    socket.on("candidate", (data: { 
+      candidate: RTCIceCandidateInit; 
+      roomId: string; 
+      userId: string;
+      userName: string;
+    }) => {
+      socket.to(data.roomId).emit("candidate", { 
+        candidate: data.candidate, 
+        userId: socket.id,
+        userName: data.userName
+      });
+    });
+
+    // Disconnect Logic
+    socket.on("disconnect", () => {
+      console.log("Client disconnected:", socket.id);
+
+      // Clean up game room
+      if (currentGameRoom) {
+        socket.to(currentGameRoom).emit("player-left", socket.id);
+        removePlayerFromRoom(currentGameRoom, socket.id);
+        socket.to(currentGameRoom).emit("chatMembers", getPlayersInRoom(currentGameRoom));
+        console.log(`Player ${socket.id} left game room ${currentGameRoom}`);
+      }
+
+      // Clean up video room
+      if (currentVideoRoom) {
+        removeUserFromVideoRoom(currentVideoRoom, socket.id);
+        socket.to(currentVideoRoom).emit("userDisconnected", socket.id);
+        console.log(`User ${socket.id} left video room ${currentVideoRoom}`);
+      }
     });
   });
 };
