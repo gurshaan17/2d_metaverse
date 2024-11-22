@@ -88,11 +88,8 @@ const VideoCall = ({ roomId, onClose }) => {
     };
 
     peerConnection.ontrack = event => {
-      console.log('Received tracks:', event.streams);
+      console.log('Received remote track:', event.streams[0]);
       if (!remoteVideosRef.current[userId]) {
-        const videoContainer = document.createElement('div');
-        videoContainer.classList.add('relative');
-        
         const remoteVideo = document.createElement('video');
         remoteVideo.srcObject = event.streams[0];
         remoteVideo.autoplay = true;
