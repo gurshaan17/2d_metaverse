@@ -22,6 +22,7 @@ function JoinSpace() {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       navigate('/');
+      return;
     }
     if (isAuthenticated && user) {
       const Socket = io(`${backendUrl}`);
@@ -30,7 +31,7 @@ function JoinSpace() {
         console.log("Chat connected");
         Socket.emit("chatConnect", {
           name: user.given_name + " " + user.family_name,
-          profile: user.picture,
+          profile: user?.picture || "/default-avatar.png",
           spaceId: spaceId
         });
       });
@@ -71,7 +72,7 @@ function JoinSpace() {
     }
   }, [socket]);
 
-  if (isLoading) {
+  if (isLoading || !user) {
     return <div>Loading...</div>;
   }
 
@@ -84,13 +85,13 @@ function JoinSpace() {
   }
 
   const handleSendMessage = () => {
-    if (message.trim() && socket) {
+    if (message.trim() && socket && user) {
       const chatMessage = {
         sender: `${user.given_name} ${user.family_name}`,
         message,
         timestamp: new Date().toLocaleTimeString(),
         roomId: spaceId,
-        profile: user.picture
+        profile: user?.picture || "/default-avatar.png"
       };
       socket.emit("sendMessage", chatMessage);
       setChatMessages((prevMessages) => [...prevMessages, chatMessage]);
@@ -193,9 +194,15 @@ function JoinSpace() {
           className="w-8 h-8"
         />
         <div className="ml-[3%] h-[80%] flex bg-[#2D335A] space-x-2 rounded-lg p-2">
-          <img src={user.picture} className="w-6 h-6 rounded-full" alt="User" />
+          <img 
+            src={user?.picture || "/default-avatar.png"} 
+            className="w-6 h-6 rounded-full" 
+            alt="User" 
+          />
           <span className="text-sm text-gray-600">|</span>
-          <span className="text-gray-400 text-sm">{user.given_name + " " + user.family_name}</span>
+          <span className="text-gray-400 text-sm">
+            {user ? `${user.given_name} ${user.family_name}` : 'Loading...'}
+          </span>
           <div className="rounded-full bg-green-500 w-2 h-2"></div>
         </div>
         <MessageCircle onClick={() => { switchChat(true); }} size={20} className="text-gray-300 m-2 cursor-pointer ml-[65%]" />
