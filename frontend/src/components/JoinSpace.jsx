@@ -29,9 +29,13 @@ function JoinSpace() {
       const Socket = io(`${backendUrl}`);
       setSocket(Socket);
       Socket.on('connect', () => {
-        console.log("Socket connected successfully");
+        console.log("Chat connected");
+        const userName = user?.given_name && user?.family_name 
+          ? `${user.given_name} ${user.family_name}`
+          : user?.email || 'Anonymous User';
+
         Socket.emit("chatConnect", {
-          name: user.given_name + " " + user.family_name,
+          name: userName,
           profile: user?.picture || "/default-avatar.png",
           spaceId: spaceId
         });
@@ -65,7 +69,11 @@ function JoinSpace() {
   }, [socket]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#242846]">
+        <span className="text-white">Loading...</span>
+      </div>
+    );
   }
 
 //   if (!isAuthenticated) {
@@ -109,20 +117,14 @@ function JoinSpace() {
       </div>
       <div className="h-[92%] w-screen flex">
         <div className="w-[75%] h-full bg-[#242846]">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <span className="text-gray-400">Loading...</span>
-            </div>
-          ) : user && spaceId ? (
+          {user && spaceId && (
             <CanvasGame
-              name={user.given_name + " " + user.family_name}
+              name={user?.given_name && user?.family_name 
+                ? `${user.given_name} ${user.family_name}`
+                : user?.email || 'Anonymous User'}
               gameId={spaceId}
               onLoad={() => setGameLoaded(true)}
             />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <span className="text-gray-400">Authentication required</span>
-            </div>
           )}
         </div>
         <div className="w-[25%] bg-[#202540]">

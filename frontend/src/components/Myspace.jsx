@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Users, Globe, Search,  Plus, LogOut,  DeleteIcon } from 'lucide-react';
+import { Calendar, Users, Globe, Search,  Plus, LogOut,  DeleteIcon, ArrowRight } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { useNavigate } from 'react-router-dom';
@@ -160,6 +160,7 @@ const MySpace = () => {
   const { user, isAuthenticated, isLoading, logout } = useKindeAuth();
   const [spaces, setSpaces] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [joinRoomId, setJoinRoomId] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -194,6 +195,14 @@ const MySpace = () => {
     setSpaces(updatedSpaces);
     axios.post(`${backendUrl}/deletespace`, {email: user.email,roomId:space.roomId});
   };
+
+  const handleJoinSpace = (e) => {
+    e.preventDefault();
+    if (joinRoomId.trim()) {
+      navigate(`/space/${joinRoomId}`);
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -256,7 +265,7 @@ const MySpace = () => {
 
       {/* Main Content */}
       <main className="px-6 py-8">
-        {/* Tabs and Search */}
+        {/* Tabs and Join Space */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex gap-4">
             {['Last Visited', 'Created Spaces'].map((tab) => (
@@ -273,14 +282,22 @@ const MySpace = () => {
               </button>
             ))}
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <form onSubmit={handleJoinSpace} className="relative flex items-center">
             <input
               type="text"
-              placeholder="Search"
-              className="bg-[#464B6B] text-white pl-10 pr-4 py-2 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#63E2B7]"
+              value={joinRoomId}
+              onChange={(e) => setJoinRoomId(e.target.value)}
+              placeholder="Enter Room ID to Join"
+              className="bg-[#464B6B] text-white pl-4 pr-20 py-2 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#63E2B7] w-64"
             />
-          </div>
+            <button
+              type="submit"
+              className="absolute right-2 bg-[#63E2B7] text-[#242846] px-3 py-1 rounded-md hover:bg-opacity-90 transition-colors flex items-center gap-1"
+            >
+              Join
+              <ArrowRight size={16} />
+            </button>
+          </form>
         </div>
 
         {/* Spaces Grid */}
