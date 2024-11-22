@@ -30,11 +30,9 @@ export const initWs = (httpServer: HttpServer) => {
     transports: ['websocket', 'polling']
   });
 
-  // Track game rooms and video rooms separately
   const gameRooms = new Map<string, RoomState>();
   const videoRooms = new Map<string, VideoRoom>();
 
-  // Helper functions for game rooms
   const getPlayersInRoom = (roomId: string): Player[] => {
     const roomState = gameRooms.get(roomId);
     return roomState ? Array.from(roomState.players.values()) : [];
@@ -58,7 +56,6 @@ export const initWs = (httpServer: HttpServer) => {
     }
   };
 
-  // Helper functions for video rooms
   const addUserToVideoRoom = (roomId: string, userId: string, userName: string) => {
     if (!videoRooms.has(roomId)) {
       videoRooms.set(roomId, { users: new Map() });
@@ -154,7 +151,6 @@ export const initWs = (httpServer: HttpServer) => {
       socket.join(roomId);
       addUserToVideoRoom(roomId, socket.id, userName);
 
-      // Notify existing users about the new user
       socket.to(roomId).emit("newUser", { 
         userId: socket.id, 
         userName 

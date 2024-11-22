@@ -9,7 +9,6 @@ const Homepage = () => {
   const [showContent, setShowContent] = useState(false);
   const { login, register} = useKindeAuth();
   const navigate = useNavigate();
-  // Fade-in animation effect
   useEffect(() => {
     setShowContent(true);
   }, []);
@@ -28,7 +27,7 @@ const Homepage = () => {
           <span className="ml-2 text-white text-xl font-semibold">Metaverse</span>
         </div>
 
-        {/* CTA Buttons */}
+        {/* Buttons */}
         <div className="flex items-center space-x-4">
           <button onClick={register}  className="px-4 py-2 rounded-lg bg-[#63E2B7] text-[#242846] font-semibold hover:bg-[#50C89E] transition-colors">
             Get started
@@ -65,7 +64,6 @@ const Homepage = () => {
           </div>
         </div>
 
-        {/* Right Column - Virtual Office Preview with Video */}
         <div
           className={`w-full md:w-1/2 mt-8 md:mt-0 transform transition duration-700 delay-200 ${
             showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
@@ -75,7 +73,7 @@ const Homepage = () => {
             <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
               {/* Video Preview */}
               <video
-                src="/video/preview.mp4" // replace with your video path
+                src="/video/preview.mp4" 
                 autoPlay
                 loop
                 muted

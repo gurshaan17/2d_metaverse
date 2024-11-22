@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Users, Globe, Search,  Plus, LogOut,  DeleteIcon, ArrowRight } from 'lucide-react';
+import { Calendar, Users,  Plus, LogOut,  DeleteIcon, ArrowRight } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { useNavigate } from 'react-router-dom';
