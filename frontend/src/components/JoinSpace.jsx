@@ -49,7 +49,9 @@ function JoinSpace() {
       });
 
       return () => {
-        Socket.disconnect();
+        if (Socket) {
+          Socket.disconnect();
+        }
       };
     }
   }, [isLoading, navigate, user, spaceId]);

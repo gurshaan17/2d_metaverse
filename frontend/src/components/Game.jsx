@@ -45,12 +45,23 @@ const CanvasGame = (props) => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) {
+      console.error('Canvas not found');
+      return;
+    }
+
     const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.error('Could not get 2D context');
+      return;
+    }
+
     const gameState = gameStateRef.current;
 
     // Set canvas size
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
+    canvas.width = canvas.clientWidth || 800; // Fallback width
+    canvas.height = canvas.clientHeight || 600; // Fallback height
+    console.log('Canvas size:', canvas.width, 'x', canvas.height);
 
     // Initialize socket connection
     socketRef.current = io(`${backendUrl}`);
@@ -104,11 +115,16 @@ const CanvasGame = (props) => {
     };
 
     const loadSprites = async () => {
-      gameState.sprites.front = await loadImage('front (2).png');
-      gameState.sprites.back = await loadImage('back (1).png');
-      gameState.sprites.left = await loadImage('left.png');
-      gameState.sprites.right = await loadImage('righ.png');
-      gameState.sprites.background = await loadImage('/ex.png');
+      try {
+        gameState.sprites.front = await loadImage('/front (2).png');
+        gameState.sprites.back = await loadImage('/back (1).png');
+        gameState.sprites.left = await loadImage('/left.png');
+        gameState.sprites.right = await loadImage('/righ.png');
+        gameState.sprites.background = await loadImage('/ex.png');
+        console.log('All sprites loaded successfully');
+      } catch (error) {
+        console.error('Error loading sprites:', error);
+      }
     };
 
     // Handle keyboard input
